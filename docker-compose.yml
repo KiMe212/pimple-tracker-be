@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:14.1-alpine
+    container_name: pimple-db
+    volumes:
+      - ./volumes/db/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: pimple_user
+      POSTGRES_PASSWORD: 9t0eXHd1IcV9Hz9IvVb0j9BFqDpMbA1m
+      POSTGRES_DB: pimple_db
+    expose:
+      - 5432
+    ports:
+      - "5422:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U pimple_user -d pimple_db'" ]
+      start_period: 5s
+      interval: 5s
+      timeout: 5s
+      retries: 50
+
+  web:
+    build: .
+    container_name: pimple-service
+    expose:
+      - 5000
+    ports:
+      - "8000:5000"
+    env_file:
+      - .env
+    volumes:
+      - ./app:/src/app
+    depends_on:
+      db:
+        condition: service_healthy
